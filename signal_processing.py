@@ -41,7 +41,7 @@ plt.plot(X_signal, signal)  # Построение графика исходно
 plt.title('Исходный график')
 plt.grid()
 plt.subplot(2, 1, 2)
-plt.plot(X_filt_signal, filt_signal)  # Построение графика фильтрованного сигнала
+plt.plot(X_filt_signal, filt_signal, color='orange')  # Построение графика фильтрованного сигнала
 plt.title('Отфильтрованный сигнал')
 plt.tight_layout()
 plt.grid()
@@ -64,10 +64,11 @@ plt.grid()
 plt.show()
 
 signal_zeros = add_zeros(signal)  # Дополнение массива сигнала нулями
+TCF_sign = np.array(range(2 * len(signal_zeros) - 1))  # массив аргументов для стандартного АКФ
 X_signal_zeros = list(range(len(signal_zeros)))  # Массив аргументов для АКФ через БПФ
 AKF_standart_sign = np.correlate(signal_zeros, signal_zeros, mode='full')  # Расчёт АКФ стандартным методом
 AKF_fft_sign = AKF_FFT(signal_zeros)  # Расчёт АКФ сигнала при помощи БПФ
-TCF_sign = np.array(range(2 * len(signal_zeros) - 1))  # массив аргументов для стандартного АКФ
+
 
 plt.subplot(2, 1, 1)  # Задания поля графиков АКФ исходного сигнала
 plt.plot(TCF_sign, AKF_standart_sign)  # Построение графика АКФ
@@ -82,10 +83,11 @@ plt.grid()
 plt.show()
 
 filt_signal_zeros = add_zeros(filt_signal)  # Аналогично для отфильтрованного сигнала
+TCF_filt = np.array(range(2 * len(filt_signal_zeros) - 1))
 X_filt_signal_zeros = list(range(len(filt_signal_zeros)))
 AKF_standart_filt = np.correlate(filt_signal_zeros, filt_signal_zeros, mode='full')
 AKF_fft_filt = AKF_FFT(filt_signal_zeros)
-TCF_filt = np.array(range(2 * len(filt_signal_zeros) - 1))
+
 
 plt.subplot(2, 1, 1)
 plt.plot(TCF_filt, AKF_standart_filt)
