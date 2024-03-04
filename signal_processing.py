@@ -21,12 +21,12 @@ def add_zeros(array):  # дополнение исходного массива 
     return padded_array  # получаем дополненный нулями исходный массив
 
 
-def AKF_FFT(array):  # Расчёт АКФ с помощью БПФ
+def ACF_FFT(array):  # Расчёт АКФ с помощью БПФ
     ar_fft = np.fft.fft(array)  # искользуем БПФ
     ar_fft_conj = np.conj(ar_fft)  # вычисляем косплексно сопряжённое
     SPM = list(ar_fft * ar_fft_conj)  # перемножаем, получая СПМ
-    AKF = np.fft.ifft(SPM)  # возвращаем во временную область с помощью ОДПФ, получая АКФ
-    return np.real(AKF)
+    acf = np.fft.ifft(SPM)  # возвращаем во временную область с помощью ОДПФ, получая АКФ
+    return np.real(acf)
 
 
 with open('test.txt', 'r', encoding='utf-8') as file:  # открываем тестовый файл (сигнал ЭКГ с помехой 50 Гц)
@@ -36,67 +36,45 @@ filt_signal = sliding_window_filter(signal)  # фильтруем сигнал
 X_filt_signal = np.array(range(1, len(filt_signal) + 1))  # массив аргументов для дискретных отчётов фильтрованного
 # отчётов фильтрованного сигнала
 
-plt.subplot(2, 1, 1)  # Задания поля графиков исходного и фильтрованного сигналов
-plt.plot(X_signal, signal)  # Построение графика исходного сигнала
-plt.title('Исходный график')
-plt.grid()
-plt.subplot(2, 1, 2)
-plt.plot(X_filt_signal, filt_signal, color='orange')  # Построение графика фильтрованного сигнала
-plt.title('Отфильтрованный сигнал')
-plt.tight_layout()
+plt.subplot(2, 2, 1)  # Задания поля графиков исходного и фильтрованного сигналов
+plt.plot(X_signal, signal, label='Исходный сигнал')
+plt.plot(X_filt_signal, filt_signal, color='orange', label='Отфильтрованный сигнал')  # График исходного сигнала
+plt.title('Сигнал')
+plt.legend()
 plt.grid()
 
-plt.show()
 
 signal_var = np.square(signal - np.mean(signal))  # расчёт массива дисперсий для двух версий сигнала
 filt_sign_var = np.square(filt_signal - np.mean(signal))
 
-plt.subplot(2, 1, 1)  # Задания поля графиков дисперсий двух версий сигнала
-plt.plot(X_signal, signal_var)  # Функция распределения дисперсии исходного сигнала
+plt.subplot(2, 2, 2)  # Задания поля графиков дисперсий двух версий сигнала
+#plt.plot(X_signal, signal_var, label='Распределение отклонений исходного сигнала')
+plt.plot(X_filt_signal, filt_sign_var,  label='Распределение отклонений отфильтрованного сигнала')
 plt.title('Распределение отклонений')
 plt.grid()
-plt.subplot(2, 1, 2)
-plt.plot(X_filt_signal, filt_sign_var)  # Функция распределения дисперсии фильтрованного сигнала
-plt.title('Распределение отклонений')
-plt.tight_layout()
-plt.grid()
-
-plt.show()
 
 signal_zeros = add_zeros(signal)  # Дополнение массива сигнала нулями
 TCF_sign = np.array(range(2 * len(signal_zeros) - 1))  # массив аргументов для стандартного АКФ
 X_signal_zeros = list(range(len(signal_zeros)))  # Массив аргументов для АКФ через БПФ
-AKF_standart_sign = np.correlate(signal_zeros, signal_zeros, mode='full')  # Расчёт АКФ стандартным методом
-AKF_fft_sign = AKF_FFT(signal_zeros)  # Расчёт АКФ сигнала при помощи БПФ
-
-
-plt.subplot(2, 1, 1)  # Задания поля графиков АКФ исходного сигнала
-plt.plot(TCF_sign, AKF_standart_sign)  # Построение графика АКФ
-plt.title('АКФ сигнала')
-plt.grid()
-plt.subplot(2, 1, 2)
-plt.plot(X_signal_zeros, AKF_fft_sign)  # График АКФ при помощи БПФ
-plt.title('АКФ сигнала, реализованная при помощи БПФ')
-plt.tight_layout()
-plt.grid()
-
-plt.show()
+ACF_standart_sign = np.correlate(signal_zeros, signal_zeros, mode='full')  # Расчёт АКФ стандартным методом
+ACF_fft_sign = ACF_FFT(signal_zeros)  # Расчёт АКФ сигнала при помощи БПФ
 
 filt_signal_zeros = add_zeros(filt_signal)  # Аналогично для отфильтрованного сигнала
 TCF_filt = np.array(range(2 * len(filt_signal_zeros) - 1))
 X_filt_signal_zeros = list(range(len(filt_signal_zeros)))
-AKF_standart_filt = np.correlate(filt_signal_zeros, filt_signal_zeros, mode='full')
-AKF_fft_filt = AKF_FFT(filt_signal_zeros)
+ACF_standart_filt = np.correlate(filt_signal_zeros, filt_signal_zeros, mode='full')
+ACF_fft_filt = ACF_FFT(filt_signal_zeros)
 
-
-plt.subplot(2, 1, 1)
-plt.plot(TCF_filt, AKF_standart_filt)
+plt.subplot(2, 2, 3)  # Задания поля графиков АКФ исходного сигнала
+#plt.plot(TCF_sign, ACF_standart_sign, label='АКФ исходного сигнала')
+plt.plot(TCF_filt, ACF_standart_filt, label='АКФ отфильтрованого сигнала')  # Построение графика АКФ
 plt.title('АКФ сигнала')
 plt.grid()
-plt.subplot(2, 1, 2)
-plt.plot(X_filt_signal_zeros, AKF_fft_filt)
+
+plt.subplot(2, 2, 4)
+#plt.plot(X_signal_zeros, ACF_fft_sign, label='АКФ исходного сигнала')
+plt.plot(X_filt_signal_zeros, ACF_fft_filt, label='АКФ отфильтрованого сигнала')
 plt.title('АКФ сигнала, реализованная при помощи БПФ')
-plt.tight_layout()
 plt.grid()
 
 plt.show()
